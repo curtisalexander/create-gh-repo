@@ -254,16 +254,16 @@ PAT="$(sudo security find-internet-password -gws github.com)"
 # POST
 echo "POSTing to Github API"
 
-#curl -X POST https://api.github.com/user/repos \
-#-H "Authorization: token ${PAT}" \
-#-d @- << EOF
-##{
-#  "name": "${REPONAME}",
-#  "auto_init": true,
-#  "private": false,
-#"license_template": "mit"
-#}
-#EOF 2> /dev/null
+curl -X POST https://api.github.com/user/repos \
+-H "Authorization: token ${PAT}" \
+-d @- << EOF
+{
+  "name": "${REPONAME}",
+  "auto_init": true,
+  "private": ${PRIVATE},
+"license_template": "${LICENSE}"
+}
+EOF 2> /dev/null
 
 echo
 if [[ $? -eq 0 ]]; then
