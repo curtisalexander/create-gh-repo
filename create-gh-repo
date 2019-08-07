@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# get personal access token from keychain - only works on macOS
+PAT="$(sudo security find-internet-password -gws github.com)"
+REPONAME="timer-cli"
+
+curl -i -X POST https://api.github.com/user/repos \
+-H "Authorization: token ${PAT}" \
+-d @- << EOF
+{
+  "name": "${REPONAME}",
+  "auto_init": true,
+  "private": false,
+  "license_template": "mit"
+}
+EOF
