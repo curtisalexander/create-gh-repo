@@ -25,14 +25,23 @@ display_help() {
     echo "  -r, --repo          name of repository"
     echo "  -p, --private       private repository"
     echo "  -l, --license       license"
+    echo "  -t, --pat           personal access token"
     echo
-    echo "  By default sets repo to public and license to MIT."
+    echo "  Defaults"
+    echo "    - private: false (set to public)"
+    echo "    - license: mit"
+    echo "    - pat: accessed via osx keychain"
     echo
-    echo "  License abbreviations may be found at https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type"
+    echo "  Personal access token"
+    echo "    Personal access token may be passed in on the command line or it may be fetched from osx keychain (default)."
+    echo
+    echo "  Licenses"
+    echo "    License abbreviations may be found at https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type"
     echo
     echo "Examples: "
-    echo "  ${0} --repo test                                      # create a repository named 'test', set it to be public (default), with mit license (default)"
-    echo "  ${0} --repo test --private --license bsd-2-clause     # create a repository named 'test', set it to be private, with bsd license"
+    echo "  ${0} --repo test                                   # create a repository named 'test', set it to be public (default), with mit license (default)"
+    echo "  ${0} --repo test --private --license bsd-2-clause  # create a repository named 'test', set it to be private, with bsd license"
+    echo "  ${0} --repo test --private --pat 123abc            # create a repository named 'test', set it to be private, and pass the personal access token on the command line"
     echo
 }
 
@@ -83,12 +92,13 @@ display_license_help() {
     echo
 }
 
+
 ########
 # args #
 ########
 
 # First check if there are not any arguments
-if [[ -z $1 ]]; then
+if [[ -z "${1}" ]]; then
     display_help
     exit 0
 fi
@@ -116,6 +126,10 @@ while [[ $# > 0 ]]; do
             ;;
         -p | --private)
             PRIVATE="true"
+            ;;
+        -t | --pat)
+            PAT="$2"
+            shift
             ;;
         *)
             display_help
@@ -234,6 +248,7 @@ case $LICENSE in
         ;;
 esac
 
+
 #######
 # run #
 #######
@@ -246,17 +261,20 @@ echo "License name: ${LICENSETEXT}"
 echo
 
 # get personal access token from keychain - only works on macOS
-echo "Getting personal access token for Github"
-echo "Password (if requested) is 'sudo' password"
-echo
-PAT="$(sudo security find-internet-password -gws github.com)"
+if [[ -z "${PAT}" ]]; then
+    echo "Getting personal access token for Github"
+    echo "Password (if requested) is 'sudo' password"
+    echo
+    PAT="$(sudo security find-internet-password -gws github.com)"
+else
+    echo "Personal access token provided on the command line"
+fi
 
 # POST
 echo "POSTing to Github API"
 
 curl -X POST https://api.github.com/user/repos \
 -H "Authorization: token ${PAT}" \
-2> /dev/null \
 -d @- << EOF
 {
   "name": "${REPONAME}",
