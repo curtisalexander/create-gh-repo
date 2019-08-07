@@ -10,6 +10,7 @@ To display the help text.
 create-gh-repo --help
 ```
 
+<br/>
 The resulting help text (and usage) is below.
 
 ```bash
