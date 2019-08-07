@@ -1,16 +1,273 @@
 #!/usr/bin/env bash
 
-# get personal access token from keychain - only works on macOS
-PAT="$(sudo security find-internet-password -gws github.com)"
-REPONAME="timer-cli"
+########
+# vars #
+########
 
-curl -i -X POST https://api.github.com/user/repos \
--H "Authorization: token ${PAT}" \
--d @- << EOF
-{
-  "name": "${REPONAME}",
-  "auto_init": true,
-  "private": false,
-  "license_template": "mit"
+PAT=""
+REPONAME=""
+PRIVATE="false"
+LICENSE="mit"
+LICENSETXT="MIT"
+
+
+########
+# fncs #
+########
+
+display_help() {
+    echo
+    echo "create-gh-repo: Create a Github repo"
+    echo
+    echo "Usage: ${0} [option...]"
+    echo
+    echo "  -h, --help          display help"
+    echo "  -r, --repo          name of repository"
+    echo "  -p, --private       private repository"
+    echo "  -l, --license       license"
+    echo
+    echo "  By default sets repo to public and license to MIT."
+    echo
+    echo "  License abbreviations may be found at https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type"
+    echo
+    echo "Examples: "
+    echo "  ${0} --repo test                                      # create a repository named 'test', set it to be public (default), with mit license (default)"
+    echo "  ${0} --repo test --private --license bsd-2-clause     # create a repository named 'test', set it to be private, with bsd license"
+    echo
 }
-EOF
+
+display_license_help() {
+    echo
+    echo "An incorrect license abbreviation was provided."
+    echo
+    echo "The license abbreviation must be one of the following."
+    echo
+    echo "| License Abbreviation | License Text                                       |"
+    echo "| -------------------- | -------------------------------------------------- |"
+    echo "| afl-3.0              | Academic Free License v3.0                         |"
+    echo "| apache-2.0           | Apache license 2.0                                 |"
+    echo "| artistic-2.0         | Artistic license 2.0                               |"
+    echo "| bsl-1.0              | Boost Software License 1.0                         |"
+    echo "| bsd-2-clause         | BSD 2-clause 'Simplified' license                  |"
+    echo "| bsd-3-clause         | BSD 3-clause 'New' or 'Revised' license            |"
+    echo "| bsd-3-clause-clear   | BSD 3-clause Clear license                         |"
+    echo "| cc                   | Creative Commons license family                    |"
+    echo "| cc0-1.0              | Creative Commons Zero v1.0 Universal               |"
+    echo "| cc-by-4.0            | Creative Commons Attribution 4.0                   |"
+    echo "| cc-by-sa-4.0         | Creative Commons Attribution Share Alike 4.0       |"
+    echo "| wtfpl                | Do What The F*ck You Want To Public License        |"
+    echo "| ecl-2.0              | Educational Community License v2.0                 |"
+    echo "| epl-1.0              | Eclipse Public License 1.0                         |"
+    echo "| eupl-1.1             | European Union Public License 1.1                  |"
+    echo "| agpl-3.0             | GNU Affero General Public License v3.0             |"
+    echo "| gpl                  | GNU General Public License family                  |"
+    echo "| gpl-2.0              | GNU General Public License v2.0                    |"
+    echo "| gpl-3.0              | GNU General Public License v3.0                    |"
+    echo "| lgpl                 | GNU Lesser General Public License family           |"
+    echo "| lgpl-2.1             | GNU Lesser General Public License v2.1             |"
+    echo "| lgpl-3.0             | GNU Lesser General Public License v3.0             |"
+    echo "| isc                  | ISC                                                |"
+    echo "| lppl-1.3c            | LaTeX Project Public License v1.3c                 |"
+    echo "| ms-pl                | Microsoft Public License                           |"
+    echo "| mit                  | MIT                                                |"
+    echo "| mpl-2.0              | Mozilla Public License 2.0                         |"
+    echo "| osl-3.0              | Open Software License 3.0                          |"
+    echo "| postgresql           | PostgreSQL License                                 |"
+    echo "| ofl-1.1              | SIL Open Font License 1.1                          |"
+    echo "| ncsa                 | University of Illinois/NCSA Open Source License    |"
+    echo "| unlicense            | The Unlicense                                      |"
+    echo "| zlib                 | zLib License                                       |"
+    echo
+    echo "Details of license abbreviations may be found at"
+    echo "  https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type"
+    echo
+}
+
+########
+# args #
+########
+
+# First check if there are not any arguments
+if [[ -z $1 ]]; then
+    display_help
+    exit 0
+fi
+
+# Use > 1 to consume two arguments per pass in the loop
+#   each argument has a corresponding value to go with it
+# Use > 0 to consume one or more arguments per pass in the loop
+#   some arguments don't have a corresponding value to go with it
+
+while [[ $# > 0 ]]; do
+    key="$1"
+
+    case $key in
+        -h | --help)
+            display_help
+            exit 0
+            ;;
+        -r | --repo)
+            REPONAME="$2"
+            shift
+            ;;
+        -l | --license)
+            LICENSE="$2"
+            shift
+            ;;
+        -p | --private)
+            PRIVATE="true"
+            ;;
+        *)
+            display_help
+            exit 0
+            ;;
+    esac
+
+    shift
+
+done
+
+# Validate license
+case $LICENSE in
+    "afl-3.0")
+        LICENSETEXT="Academic Free License v3.0"
+        ;;
+    "apache-2.0")
+        LICENSETEXT="Apache license 2.0"
+        ;;
+    "artistic-2.0")
+        LICENSETEXT="Artistic license 2.0"
+        ;;
+    "bsl-1.0")
+        LICENSETEXT="Boost Software License 1.0"
+        ;;
+    "bsd-2-clause")
+        LICENSETEXT="BSD 2-clause 'Simplified' license"
+        ;;
+    "bsd-3-clause")
+        LICENSETEXT="BSD 3-clause 'New' or 'Revised' license"
+        ;;
+    "bsd-3-clause-clear")
+        LICENSETEXT="BSD 3-clause Clear license"
+        ;;
+    "cc")
+        LICENSETEXT="Creative Commons license family"
+        ;;
+    "cc0-1.0")
+        LICENSETEXT="Creative Commons Zero v1.0 Universal"
+        ;;
+    "cc-by-4.0")
+        LICENSETEXT="Creative Commons Attribution 4.0"
+        ;;
+    "cc-by-sa-4.0")
+        LICENSETEXT="Creative Commons Attribution Share Alike 4.0"
+        ;;
+    "wtfpl")
+        LICENSETEXT="Do What The F*ck You Want To Public License"
+        ;;
+    "ecl-2.0")
+        LICENSETEXT="Educational Community License v2.0"
+        ;;
+    "epl-1.0")
+        LICENSETEXT="Eclipse Public License 1.0"
+        ;;
+    "eupl-1.1")
+        LICENSETEXT="European Union Public License 1.1"
+        ;;
+    "agpl-3.0")
+        LICENSETEXT="GNU Affero General Public License v3.0"
+        ;;
+    "gpl")
+        LICENSETEXT="GNU General Public License family"
+        ;;
+    "gpl-2.0")
+        LICENSETEXT="GNU General Public License v2.0"
+        ;;
+    "gpl-3.0")
+        LICENSETEXT="GNU General Public License v3.0"
+        ;;
+    "lgpl")
+        LICENSETEXT="GNU Lesser General Public License family"
+        ;;
+    "lgpl-2.1")
+        LICENSETEXT="GNU Lesser General Public License v2.1"
+        ;;
+    "lgpl-3.0")
+        LICENSETEXT="GNU Lesser General Public License v3.0"
+        ;;
+    "isc")
+        LICENSETEXT="ISC"
+        ;;
+    "lppl-1.3c")
+        LICENSETEXT="LaTeX Project Public License v1.3c"
+        ;;
+    "ms-pl")
+        LICENSETEXT="Microsoft Public License"
+        ;;
+    "mit")
+        LICENSETEXT="MIT"
+        ;;
+    "mpl-2.0")
+        LICENSETEXT="Mozilla Public License 2.0"
+        ;;
+    "osl-3.0")
+        LICENSETEXT="Open Software License 3.0"
+        ;;
+    "postgresql")
+        LICENSETEXT="PostgreSQL License"
+        ;;
+    "ofl-1.1")
+        LICENSETEXT="SIL Open Font License 1.1"
+        ;;
+    "ncsa")
+        LICENSETEXT="University of Illinois/NCSA Open Source License"
+        ;;
+    "unlicense")
+        LICENSETEXT="The Unlicense"
+        ;;
+    "zlib")
+        LICENSETEXT="zLib License"
+        ;;
+    *)
+        display_license_help
+        exit 0
+        ;;
+esac
+
+#######
+# run #
+#######
+
+echo
+echo "Repo name: ${REPONAME}"
+echo "Private?: ${PRIVATE}"
+echo "License abbreviation: ${LICENSE}"
+echo "License name: ${LICENSETEXT}"
+echo
+
+# get personal access token from keychain - only works on macOS
+echo "Getting personal access token for Github"
+echo "Password (if requested) is 'sudo' password"
+echo
+PAT="$(sudo security find-internet-password -gws github.com)"
+
+# POST
+echo "POSTing to Github API"
+
+#curl -X POST https://api.github.com/user/repos \
+#-H "Authorization: token ${PAT}" \
+#-d @- << EOF
+##{
+#  "name": "${REPONAME}",
+#  "auto_init": true,
+#  "private": false,
+#"license_template": "mit"
+#}
+#EOF 2> /dev/null
+
+echo
+if [[ $? -eq 0 ]]; then
+  echo "Successfully created repo!"
+else
+  echo "Repo was not successfully created." >&2
+fi
