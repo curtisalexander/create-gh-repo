@@ -6,14 +6,14 @@ Bash script to interact with the [Github API](https://developer.github.com/v3/) 
 
 To display the help text.
 
-```bash
+```
 create-gh-repo --help
 ```
 
 <br/>
 The resulting help text (and usage) is below.
 
-```bash
+```
 create-gh-repo: Create a Github repo
 
 Usage: ./create-gh-repo [option...]
