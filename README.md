@@ -33,4 +33,4 @@ Examples:
 
 ## Other
 
-The repo also includes a script, `process-gh-license-table.py` which simply transforms the [Github license table](https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type) into a few different forms to include in the script. This was done in lieu of hand writing everything.
+The repo also includes a script, [`process-gh-license-table.py`](https://github.com/curtisalexander/create-gh-repo/blob/master/utility/process-gh-license-table.py) which simply transforms the [Github license table](https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type) into a few different forms to include in the script. This was done in lieu of hand writing everything.
