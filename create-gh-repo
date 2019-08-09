@@ -325,23 +325,25 @@ EOF
 REPOURL="$(sed -n 's/[ \t]*\"full_name\": \"\(.*\)\",/\1/p' ${POSTRESPONSE})"
 
 echo
-echo "The response from the Github API (for troubleshooting) was written to the file ${POSTRESPONSE}"
-echo
 echo "The response from the Github API is"
 echo
 cat "${POSTRESPONSE}"
-
-echo
-if [[ -z "${REPOURL}" ]]; then
-    echo "Something went wrong and the URL of the repo could not be determined"
-else
-    echo "The URL of the repo is https://github.com/${REPOURL}"
-fi
-echo
 
 # Remove tmp file
 if [[ "${KEEPRESPONSE}" == "N" ]]; then
     echo "Cleaning up: removing the response file at ${POSTRESPONSE}"
     echo "To keep the response file (for troubleshooting) in future runs, utilize the --keep flag"
     rm -f "${POSTRESPONSE}"
+else
+    echo "The response from the Github API (for troubleshooting) was written to the file ${POSTRESPONSE}"
 fi
+
+# What is the final URL? 
+echo
+if [[ -z "${REPOURL}" ]]; then
+    echo "Something went wrong and the URL of the repo could not be determined"
+else
+    echo "Repo URL: https://github.com/${REPOURL}"
+fi
+echo
+
