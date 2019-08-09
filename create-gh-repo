@@ -9,6 +9,7 @@ REPONAME=""
 PRIVATE="false"
 LICENSE="mit"
 LICENSETXT="MIT"
+KEEPRESPONSE="N"
 
 
 ########
@@ -26,11 +27,13 @@ display_help() {
     echo "  -p, --private       private repository"
     echo "  -l, --license       license"
     echo "  -t, --pat           personal access token"
+    echo "  -k, --keep          keep response from Github API (for troubleshooting)"
     echo
     echo "  Defaults"
     echo "    - private: false (set to public)"
     echo "    - license: mit"
     echo "    - pat: accessed via osx keychain"
+    echo "    - keep: false (response file from Github API deleted)"
     echo
     echo "  Personal access token"
     echo "    Personal access token may be passed in on the command line or it may be fetched from osx keychain (default)."
@@ -133,6 +136,9 @@ while [[ $# > 0 ]]; do
         -t | --pat)
             PAT="$2"
             shift
+            ;;
+        -k | --keep)
+            KEEPRESPONSE="Y"
             ;;
         *)
             display_help
@@ -287,7 +293,7 @@ curl -X POST https://api.github.com/user/repos \
   "name": "${REPONAME}",
   "auto_init": true,
   "private": ${PRIVATE},
-"license_template": "${LICENSE}"
+  "license_template": "${LICENSE}"
 }
 EOF
 
@@ -307,10 +313,23 @@ EOF
 REPOURL="$(sed -n 's/[ \t]*\"full_name\": \"\(.*\)\",/\1/p' ${POSTRESPONSE})"
 
 echo
+echo "The response from the Github API (for troubleshooting) was written to the file ${POSTRESPONSE}"
+echo
 echo "The response from the Github API is"
 echo
 cat "${POSTRESPONSE}"
 
 echo
-echo "The URL of the repo is ${REPOURL}"
+if [[ -z "${REPOURL}" ]]; then
+    echo "Something went wrong and the URL of the repo could not be determined"
+else
+    echo "The URL of the repo is https://github.com/${REPOURL}"
+fi
 echo
+
+# Remove tmp file
+if [[ "${KEEPRESPONSE}" == "N" ]]; then
+    echo "Cleaning up: removing the response file at ${POSTRESPONSE}"
+    echo "To keep the response file (for troubleshooting) in future runs, utilize the --keep flag"
+    rm -f "${POSTRESPONSE}"
+fi
