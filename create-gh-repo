@@ -95,6 +95,13 @@ display_license_help() {
     echo
 }
 
+display_sudo_wrong() {
+    echo
+    echo "The sudo password was entered incorrectly.  The script cannot acquire the user's"
+    echo "  personal access token and has exited."
+    echo
+}
+
 create_tmp() {
     echo "$(cat /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
 }
@@ -275,6 +282,10 @@ if [[ -z "${PAT}" ]]; then
     echo "Password (if requested) is 'sudo' password"
     echo
     PAT="$(sudo security find-internet-password -gws github.com)"
+    if [[ $? -ne 0 ]]; then
+        display_sudo_wrong
+        exit 0
+    fi
 else
     echo "Personal access token provided on the command line"
 fi
