@@ -97,8 +97,9 @@ display_license_help() {
 
 display_sudo_wrong() {
     echo
-    echo "The sudo password was entered incorrectly.  The script cannot acquire the user's"
-    echo "  personal access token and has exited."
+    echo "The sudo password was entered incorrectly.  The script cannot acquire the user's personal access token and has exited."
+    echo
+    echo "For an alternative to using 'security', the personal access token may be passed in on the command line via the --pat argument."
     echo
 }
 
