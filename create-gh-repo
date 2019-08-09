@@ -92,6 +92,9 @@ display_license_help() {
     echo
 }
 
+create_tmp() {
+    echo "$(cat /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
+}
 
 ########
 # args #
@@ -273,8 +276,12 @@ fi
 # POST
 echo "POSTing to Github API"
 
+# create a temporary file to write the results to
+POSTRESPONSE="/tmp/$(create_tmp)"
+
 curl -X POST https://api.github.com/user/repos \
 -H "Authorization: token ${PAT}" \
+1> "${POSTRESPONSE}" \
 -d @- << EOF
 {
   "name": "${REPONAME}",
@@ -283,3 +290,27 @@ curl -X POST https://api.github.com/user/repos \
 "license_template": "${LICENSE}"
 }
 EOF
+
+# Sed with a capture group
+# http://www.grymoire.com/unix/Sed.html#uh-4
+# Interpretation
+#  NOTE: Any part of the pattern (i.e. line) not included will be printed out thus
+#    the entire pattern must be captured
+#  REGEX:
+#    [ \t]*  ==>  One or more tabs and/or spaces
+#    \"fullname\"  ==>  Quotes need to be escaped simple because within quoted command substitution
+#    \"\(.*\)\"  ==>  The escaped parentheses represent the actual capture group
+#    \1  ==>  The actual captured result
+#  SWITCHES:
+#    -n  ==>  no printing except when p is included - when used in conjunction with p, acts like grep
+#    /p  ==>  print match (substitution)
+REPOURL="$(sed -n 's/[ \t]*\"full_name\": \"\(.*\)\",/\1/p' ${POSTRESPONSE})"
+
+echo
+echo "The response from the Github API is"
+echo
+cat "${POSTRESPONSE}"
+
+echo
+echo "The URL of the repo is ${REPOURL}"
+echo
