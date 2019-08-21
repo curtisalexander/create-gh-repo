@@ -69,6 +69,7 @@ create-gh-repo --help
 ```
 
 <br/>
+
 The resulting help text (and usage) is below.
 
 ```
@@ -85,10 +86,10 @@ Usage: ./create-gh-repo [option...]
   Defaults
     - private: false (set to public)
     - license: mit
-    - pat: accessed via osx keychain
+    - pat: accessed via macOS keychain
 
   Personal access token
-    Personal access token may be passed in on the command line or it may be fetched from osx keychain (default).
+    Personal access token may be passed in on the command line or it may be fetched from macOS keychain (default).
 
   Licenses
     License abbreviations may be found at https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type

@@ -32,11 +32,11 @@ display_help() {
     echo "  Defaults"
     echo "    - private: false (set to public)"
     echo "    - license: mit"
-    echo "    - pat: accessed via osx keychain"
+    echo "    - pat: accessed via macOS keychain"
     echo "    - keep: false (response file from Github API deleted)"
     echo
     echo "  Personal access token"
-    echo "    Personal access token may be passed in on the command line or it may be fetched from osx keychain (default)."
+    echo "    Personal access token may be passed in on the command line or it may be fetched from macOS keychain (default)."
     echo
     echo "  Licenses"
     echo "    License abbreviations may be found at https://help.github.com/en/articles/licensing-a-repository#searching-github-by-license-type"
